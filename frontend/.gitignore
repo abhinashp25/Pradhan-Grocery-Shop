@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment files (NEVER commit — contain Supabase URL and anon key)
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+
+# TypeScript build info
+*.tsbuildinfo
+
+# OS junk
+.DS_Store
+Thumbs.db
