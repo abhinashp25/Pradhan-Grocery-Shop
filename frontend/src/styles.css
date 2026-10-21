@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --page: #fff8ec;
+  --card: #ffffff;
+  --ink: #3a2a1e;
+  --muted: #5e4b3b;
+  --line: #cdbfa6;
+}
+
+/* Dark mode keeps text far above the contrast minimum. */
+:root[data-theme="dark"] {
+  --page: #17110b;
+  --card: #241a12;
+  --ink: #fff3e0;
+  --muted: #e3d2ba;
+  --line: #6b5640;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: "Noto Sans", "Noto Sans Oriya", sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 3px solid #f28c0f;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* Print: keep the content, drop the bars and buttons. */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
+}

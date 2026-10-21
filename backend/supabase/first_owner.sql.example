@@ -1,0 +1,7 @@
+-- Make the first owner. Do these two steps once, on the TEST project first.
+-- 1. In Supabase: Authentication, Users, Add user. Use your email and a long password.
+--    Copy the new user's id.
+-- 2. Run this in the SQL editor, with that id and your name:
+insert into profiles (id, role, full_name)
+values ('0dbc0a3b-4a9a-4777-a979-86d710391c81', 'admin', 'Abhinash');
+-- Then open /owner/login in the app, log in, and set up the two-step code (More, Two-step code).
