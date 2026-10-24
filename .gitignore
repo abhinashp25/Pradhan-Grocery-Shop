@@ -15,6 +15,8 @@ build/
 # Supabase local dev
 **/supabase/.branches/
 **/supabase/.temp/
+**/.supabase/
+
 
 # OS junk
 .DS_Store
@@ -28,7 +30,11 @@ desktop.ini
 *.ntvs*
 *.njsproj
 *.sln
+*.tsbuildinfo
 
 # Logs
 *.log
 npm-debug.log*
+
+.vscode
+.github/
