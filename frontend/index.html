@@ -8,9 +8,22 @@
     <meta name="theme-color" content="#0E4A2B" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
+    <style>
+      /* Shown at once while the app downloads, so a slow phone never sees a blank page. */
+      body { margin: 0; background: #fff8ec; }
+      .boot-bar { height: 72px; background: #0e4a2b; }
+      .boot-hero { margin: 16px; height: 220px; border-radius: 32px; }
+      .boot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px; }
+      .boot-grid i { display: block; height: 150px; border-radius: 24px; }
+      .boot-hero, .boot-grid i { background: linear-gradient(100deg, #eadfcb 30%, #f3e9d6 50%, #eadfcb 70%); background-size: 200% 100%; animation: bootshimmer 1.4s linear infinite; }
+      @keyframes bootshimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+      @media (min-width: 1024px) { .boot-grid { grid-template-columns: repeat(4, 1fr); max-width: 1152px; margin: 16px auto; } .boot-hero { max-width: 1152px; margin: 16px auto; height: 360px; } }
+      @media (prefers-color-scheme: dark) { body { background: #17110b; } .boot-hero, .boot-grid i { background: linear-gradient(100deg, #2a1f16 30%, #3a2c20 50%, #2a1f16 70%); background-size: 200% 100%; } }
+      @media (prefers-reduced-motion: reduce) { .boot-hero, .boot-grid i { animation: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div aria-hidden="true"><div class="boot-bar"></div><div class="boot-hero"></div><div class="boot-grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
