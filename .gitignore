@@ -13,8 +13,8 @@ build/
 .env.*.local
 
 # Supabase local dev
-supabase/.branches/
-supabase/.temp/
+**/supabase/.branches/
+**/supabase/.temp/
 
 # OS junk
 .DS_Store

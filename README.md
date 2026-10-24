@@ -35,7 +35,7 @@ The login functions use Deno packages that Supabase fetches by itself. You insta
 3. `cd frontend`, copy `.env.example` to `.env`, and fill in:
        VITE_SUPABASE_URL=<Project URL>
        VITE_SUPABASE_ANON_KEY=<anon public key>
-4. SQL editor: run `backend/supabase/migrations/001_core.sql`, then `002_storage.sql`. On the TEST project only, also run `backend/supabase/seed_test_only.sql`.
+4. SQL editor: run every file in `backend/supabase/migrations/` in number order, once each: `001_core.sql`, `002_storage.sql`, `003_customer_status.sql`, `004_purge_sent_lists.sql`, `005_shop_photos.sql`, `006_grants.sql`, `007_hardening.sql`, `008_service_role_and_storage.sql`, `009_credit_aging.sql`. On the TEST project only, also run `backend/supabase/seed_test_only.sql`.
 5. Authentication settings (names may differ a little): turn **off** new user sign-ups (customers are made only by the owner). Set the **Site URL** to your site address. Make sure two-step codes (TOTP) are enabled.
 6. Make the first owner: follow `backend/supabase/first_owner.sql.example`.
 7. Login functions, from the `backend` folder:
@@ -49,7 +49,7 @@ The login functions use Deno packages that Supabase fetches by itself. You insta
        npx supabase functions deploy reset-pin
        npx supabase functions deploy unlock-customer
    Keep `PIN_PEPPER` on paper. If it is lost or changed, every customer PIN stops working.
-8. Run the tests: paste `backend/tests/credit_rules.sql` into the SQL editor of the TEST project. The last result must say ALL PASSED.
+8. Run the tests on the TEST project, one at a time: paste `backend/tests/credit_rules.sql`, then `owner_access.sql`, then `credit_aging.sql`, into the SQL editor. The last result of each must say ALL PASSED.
 9. Start the app: `cd frontend`, `npm run dev`. Open `/owner/login`, log in, then More, Two-step code.
 
 ## 4. Put it online (Cloudflare Pages)
