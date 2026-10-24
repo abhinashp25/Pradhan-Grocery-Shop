@@ -15,7 +15,7 @@ export function BottomBar() {
   return (
     <nav
       aria-label="Main"
-      className="no-print fixed inset-x-0 bottom-0 z-20 flex h-[72px] border-t border-line bg-card"
+      className="no-print fixed inset-x-0 bottom-0 z-20 flex h-[72px] border-t border-line bg-card lg:hidden"
     >
       {items.map(({ to, icon, label }) => (
         <NavLink
