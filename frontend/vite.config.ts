@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg", "icon-192.png"],
+      includeAssets: ["Favicon.svg", "App_logo.png", "icon-192.png"],
       manifest: {
         name: "Pradhan Grocery Store",
         short_name: "Pradhan",
