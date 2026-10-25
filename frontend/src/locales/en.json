@@ -160,5 +160,6 @@
   "creditOpen": "Open credit book",
   "ownerDashboard": "Owner dashboard",
   "offlineNotice": "You are offline. Items and prices may be old.",
-  "slowNet": "The net is slow. Please wait."
+  "slowNet": "The net is slow. Please wait.",
+  "itemOne": "item"
 }
