@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { LoadError } from "../components/LoadError";
-import { Skeleton } from "../components/Skeleton";
+import { PageSkeleton } from "../components/Skeletons";
 import { StatusTag } from "../components/StatusTag";
 import { greenButton } from "../components/ui";
 import { fetchProduct, photoUrl } from "../lib/api";
@@ -17,14 +17,15 @@ export function ProductDetail() {
   const { id = "" } = useParams();
   const t = useText();
   const lang = useLang();
-  const { data, failed, retry } = useLoad(() => fetchProduct(id), [id]);
+  const { data: loaded, failed, retry } = useLoad(() => fetchProduct(id).then((product) => ({ product })), [id]);
   const [chosen, setChosen] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
+  const data = loaded?.product ?? null;
   useTitle(data ? data.name_en : "Product");
 
   if (failed) return <LoadError onRetry={retry} />;
-  if (!data) return <Skeleton className="h-96" />;
-  if (data === null) return <NotFound />;
+  if (!loaded) return <PageSkeleton />;
+  if (!data) return <NotFound />;
 
   const sizes = [...data.product_sizes].sort((a, b) => a.sort_order - b.sort_order);
   const size = sizes.find((s) => s.id === chosen) ?? sizes.find((s) => s.is_default) ?? sizes[0];

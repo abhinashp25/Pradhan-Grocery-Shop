@@ -1,5 +1,6 @@
+import { CategoryHero } from "../components/CategoryHero";
 import { LoadError } from "../components/LoadError";
-import { Skeleton } from "../components/Skeleton";
+import { PageSkeleton } from "../components/Skeletons";
 import { fetchServices } from "../lib/api";
 import { useLang, useText } from "../lib/lang";
 import { formatRupees } from "../lib/money";
@@ -12,12 +13,12 @@ export function Xerox() {
   const { data, failed, retry } = useLoad(fetchServices, []);
   useTitle("Xerox and Print", "Photocopy and print rates at Pradhan Grocery Store.");
   if (failed) return <LoadError onRetry={retry} />;
-  if (!data) return <Skeleton className="h-64" />;
+  if (!data) return <PageSkeleton />;
   // A service with no price yet is left out, so customers never see an empty rate.
   const priced = data.filter((service) => service.price_paise !== null);
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-3xl font-extrabold">{t("xerox")}</h1>
+      <CategoryHero slug="xerox" name={t("xerox")} tint="#E6E6E6" icon="printer" count={null} groups={[]} blurb={t("heroSub_xerox")} />
       <p className="rounded-2xl bg-line/40 p-4 font-bold">{t("ratesNote")}</p>
       {priced.length === 0 ? (
         <p>{t("askRates")}</p>

@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { LoadError } from "../components/LoadError";
 import { ProductCard } from "../components/ProductCard";
-import { Skeleton } from "../components/Skeleton";
+import { CategoryHero } from "../components/CategoryHero";
+import { CardGridSkeleton, HeroSkeleton } from "../components/Skeletons";
 import { fetchCategories, fetchProducts, fetchSubgroups } from "../lib/api";
 import { formatDate } from "../lib/time";
-import { useLang, useText } from "../lib/lang";
+import { categoryName, useLang, useText } from "../lib/lang";
 import { useLoad } from "../lib/useLoad";
 import { useTitle } from "../lib/useTitle";
 import { NotFound } from "./NotFound";
@@ -31,9 +32,18 @@ export function Category() {
   const dailyRates = slug === "vegetables" || slug === "fruits";
   const ratesFresh = newest !== null && formatDate(newest) === formatDate(new Date().toISOString());
 
+  const blurbKey = `heroSub_${slug}`;
+  const blurb = t(blurbKey) === blurbKey ? t("heroSub_default") : t(blurbKey);
+  const groupNames = (groups.data ?? []).map((group) => categoryName(group, lang));
+
   return (
     <div className="space-y-4">
-      <nav aria-label="Categories" className="no-print -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      {current ? (
+        <CategoryHero slug={slug} name={categoryName(current, lang)} tint={current.tint_hex} icon={current.icon_key} count={products.data ? products.data.length : null} groups={groupNames} blurb={blurb} />
+      ) : (
+        <HeroSkeleton />
+      )}
+      <nav aria-label="Categories" className="no-print no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
         {categories.data?.map((category) => (
           <Link
             key={category.id}
@@ -71,14 +81,11 @@ export function Category() {
       </label>
 
       {!shown ? (
-        <div className="grid grid-cols-2 gap-3">
-          <Skeleton className="h-72" />
-          <Skeleton className="h-72" />
-        </div>
+        <CardGridSkeleton count={8} />
       ) : shown.length === 0 ? (
         <p className="rounded-2xl bg-card p-4">{t("noItems")}</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
           {shown.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

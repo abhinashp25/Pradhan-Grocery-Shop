@@ -1,5 +1,5 @@
 import { LoadError } from "../components/LoadError";
-import { Skeleton } from "../components/Skeleton";
+import { PageSkeleton } from "../components/Skeletons";
 import { plainButton } from "../components/ui";
 import { useText } from "../lib/lang";
 import { formatRupees } from "../lib/money";
@@ -11,7 +11,8 @@ import type { CreditEntry } from "../lib/types";
 
 type Balance = { hidden: boolean; pending_paise: number; status: string };
 
-type Book = { balance: Balance | null; entries: CreditEntry[]; offlineAt?: string };
+type AgeRow = { days_pending: number | null; reminder_days: number };
+type Book = { balance: Balance | null; entries: CreditEntry[]; offlineAt?: string; age?: AgeRow | null };
 
 // With no internet, the last balance seen is shown with the time it was saved.
 async function loadBook(): Promise<Book> {
@@ -20,7 +21,8 @@ async function loadBook(): Promise<Book> {
     if (error) throw error;
     const { data: entries, error: entryError } = await supabase.from("credit_entries").select("*").order("created_at", { ascending: false });
     if (entryError) throw entryError;
-    const book = { balance: ((balance as Balance[]) ?? [])[0] ?? null, entries: (entries ?? []) as CreditEntry[] };
+    const { data: ageRows } = await supabase.rpc("get_my_credit_age");
+    const book = { balance: ((balance as Balance[]) ?? [])[0] ?? null, entries: (entries ?? []) as CreditEntry[], age: ((ageRows as AgeRow[] | null) ?? [])[0] ?? null };
     try { localStorage.setItem("last-balance", JSON.stringify({ balance: book.balance, at: new Date().toISOString() })); } catch { /* not saved */ }
     return book;
   } catch (failure) {
@@ -38,7 +40,7 @@ export function CreditBook() {
   useTitle("My Credit Book");
 
   if (failed) return <LoadError onRetry={retry} />;
-  if (!data) return <Skeleton className="h-64" />;
+  if (!data) return <PageSkeleton />;
   const { balance, entries } = data;
 
   if (!balance || balance.hidden) {
@@ -60,6 +62,11 @@ export function CreditBook() {
         {balance.status === "advance" && <p className="font-display text-3xl font-extrabold text-leaf">{t("advancePaid")} {formatRupees(Math.abs(balance.pending_paise))}</p>}
       </div>
       <p className="text-sm font-bold">{t("readOnly")}</p>
+      {balance.status === "pending" && data.age?.days_pending != null && (
+        <p className={`rounded-2xl p-3 font-bold ${data.age.days_pending >= data.age.reminder_days ? "bg-[#FFE0DA] text-[#8E2A1F]" : "bg-card"}`}>
+          {data.age.days_pending >= data.age.reminder_days ? t("creditOld", { days: data.age.days_pending }) : t("creditAge", { days: data.age.days_pending })}
+        </p>
+      )}
       {data.offlineAt && <p className="rounded-2xl bg-[#FFF0B8] p-3 text-sm font-bold text-[#3A2A1E]">{t("lastUpdated", { time: formatDateTime(data.offlineAt) })}</p>}
       <h2 className="font-display text-2xl font-extrabold">{t("history")}</h2>
       <ul>

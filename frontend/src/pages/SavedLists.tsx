@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoadError } from "../components/LoadError";
-import { Skeleton } from "../components/Skeleton";
+import { PageSkeleton } from "../components/Skeletons";
 import { greenButton, Modal, plainButton } from "../components/ui";
 import { useLang, useText } from "../lib/lang";
 import { addToList, clearList, setQuantity } from "../lib/myList";
@@ -52,7 +52,7 @@ export function SavedLists() {
   }
 
   if (failed) return <LoadError onRetry={retry} />;
-  if (!data) return <Skeleton className="h-48" />;
+  if (!data) return <PageSkeleton />;
   return (
     <div className="space-y-4">
       <h1 className="font-display text-3xl font-extrabold">{t("savedLists")}</h1>

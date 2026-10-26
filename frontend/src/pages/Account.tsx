@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { CreditNudge } from "../components/CreditNudge";
 import { Modal, plainButton } from "../components/ui";
 import { useAuth } from "../lib/auth";
 import { useText } from "../lib/lang";
@@ -42,6 +43,7 @@ export function Account() {
 
   return (
     <div className="space-y-4">
+      <CreditNudge />
       <h1 className="font-display text-3xl font-extrabold">{profile?.full_name}</h1>
       <p>{profile?.phone}</p>
       <Link to="/credit" className={`${plainButton} w-full justify-between`}>{t("creditBook")} <span>›</span></Link>

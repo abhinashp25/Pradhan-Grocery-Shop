@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { CopyButton } from "../components/Chrome";
 import { LoadError } from "../components/LoadError";
-import { Skeleton } from "../components/Skeleton";
+import { PageSkeleton } from "../components/Skeletons";
 import { mainButton, plainButton } from "../components/ui";
 import { bannerUrl, fetchShop, fetchShopPhotos } from "../lib/api";
 import { useText } from "../lib/lang";
@@ -15,7 +15,7 @@ export function ShopInfo() {
   const { data: photos } = useLoad(fetchShopPhotos, []);
   useTitle("Shop Info", "Address, timings and phone number of Pradhan Grocery Store.");
   if (failed) return <LoadError onRetry={retry} />;
-  if (!data) return <Skeleton className="h-64" />;
+  if (!data) return <PageSkeleton />;
   return (
     <div className="space-y-4">
       <h1 className="font-display text-3xl font-extrabold">{t("shopInfo")}</h1>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { LoadError } from "../components/LoadError";
 import { ProductCard } from "../components/ProductCard";
-import { Skeleton } from "../components/Skeleton";
+import { CardGridSkeleton } from "../components/Skeletons";
 import { searchProducts } from "../lib/api";
 import { useLang, useText } from "../lib/lang";
 import { supabase } from "../lib/supabase";
@@ -91,11 +91,11 @@ export function Search() {
       {failed ? (
         <LoadError onRetry={() => setTerm(term + " ")} />
       ) : busy && !results ? (
-        <Skeleton className="h-40" />
+        <CardGridSkeleton count={4} />
       ) : results && results.length === 0 ? (
         <p className="rounded-2xl bg-[#FFF0B8] p-4 font-bold text-[#3A2A1E]">{t("searchNone")}</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
           {results?.map((product) => <ProductCard key={product.id} product={product} />)}
         </div>
       )}

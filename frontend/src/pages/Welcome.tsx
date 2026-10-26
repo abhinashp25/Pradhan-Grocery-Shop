@@ -21,7 +21,7 @@ export function Welcome() {
   if (step === 0) {
     return (
       <div className="space-y-6 py-8 text-center">
-        <img src="/icon-192.png" alt="" width={120} height={120} className="mx-auto rounded-full bg-white" />
+        <img src="/App_logo.png" alt="" className="mx-auto h-28 w-auto object-contain" />
         <h1 className="font-display text-3xl font-extrabold">{t("shopName")}</h1>
         <p>{t("chooseLanguage")}</p>
         <div className="grid gap-3">
