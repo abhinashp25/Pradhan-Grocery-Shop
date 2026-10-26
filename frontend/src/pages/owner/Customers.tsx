@@ -61,7 +61,7 @@ export function Customers() {
       setMessage({ kind: "success", text: `${name} was added. Tell them their PIN. It cannot be shown again.` });
       setName(""); setPhone(""); setPin(""); setAdding(false);
     } else {
-      setMessage({ kind: "error", text: ownerErrorText(result.code) });
+      setMessage({ kind: "error", text: ownerErrorText(result.code, result.reason) });
     }
   }
 

@@ -27,7 +27,10 @@ export function CustomerCredit() {
     const { data: entries } = await supabase.from("credit_entries").select("*").eq("account_id", accountId).order("created_at", { ascending: false });
     const { data: balance } = await supabase.from("credit_balances").select("pending_paise").eq("account_id", accountId).single();
     const { data: settings } = await supabase.from("shop_settings").select("large_amount_paise").single();
+    const { data: aging } = await supabase.rpc("credit_aging");
+    const age = ((aging ?? []) as { account_id: string; days_pending: number | null; oldest_unpaid_date: string | null }[]).find((row) => row.account_id === accountId) ?? null;
     return {
+      age,
       account: account as unknown as { id: string; show_balance: boolean; customer_id: string; profiles: { full_name: string; phone: string } },
       entries: (entries ?? []) as CreditEntry[],
       pending: balance?.pending_paise ?? 0,
@@ -55,7 +58,7 @@ export function CustomerCredit() {
 
   if (failed) return <LoadError onRetry={retry} />;
   if (!data) return <Skeleton className="h-64" />;
-  const { account, entries, pending, largeLimit } = data;
+  const { account, entries, pending, largeLimit, age } = data;
   const paise = toPaise(amount);
   const overpays = action === "payment" && paise !== null && paise > pending;
   const isLarge = paise !== null && paise >= largeLimit;
@@ -67,7 +70,7 @@ export function CustomerCredit() {
     if (action === "cleared") ({ error } = await supabase.rpc("mark_all_cleared", { p_account: accountId }));
     else if (action === "pin") {
       const result = await callOwnerFunction("reset-pin", { customerId: account.customer_id, pin });
-      if (!result.ok) error = { message: ownerErrorText(result.code) };
+      if (!result.ok) error = { message: ownerErrorText(result.code, result.reason) };
     } else {
       ({ error } = await supabase.rpc("add_credit_entry", {
         p_account: accountId, p_type: action, p_amount_paise: paise, p_note: note || null, p_entry_date: date,
@@ -105,6 +108,9 @@ export function CustomerCredit() {
         <p className="text-sm">{pending > 0 ? "Pending" : pending < 0 ? "Advance paid" : "Cleared"}</p>
         <p className={`font-display text-4xl font-extrabold ${pending > 0 ? "text-brick" : "text-leaf"}`}>{formatRupees(Math.abs(pending))}</p>
       </div>
+      {pending > 0 && age?.oldest_unpaid_date && age.days_pending !== null && (
+        <p className="text-center text-sm font-bold">Oldest unpaid credit: {formatDate(age.oldest_unpaid_date + "T00:00:00+05:30")} ({age.days_pending} days)</p>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <button className={mainButton} onClick={() => setAction("credit")}>Add Credit</button>
         <button className={plainButton} onClick={() => setAction("payment")}>Add Payment</button>
@@ -121,7 +127,7 @@ export function CustomerCredit() {
       </div>
       {pending > 0 && (
         <a className={`${plainButton} w-full`} target="_blank" rel="noreferrer"
-          href={`https://wa.me/91${account.profiles.phone}?text=${encodeURIComponent(`Hello ${account.profiles.full_name}, a gentle reminder from Pradhan Grocery Store: ${formatRupees(pending)} is pending in your credit book. Thank you.`)}`}>
+          href={`https://wa.me/91${account.profiles.phone}?text=${encodeURIComponent(`Hello ${account.profiles.full_name}, a gentle reminder from Pradhan Grocery Store: ${formatRupees(pending)} is pending in your credit book${age?.days_pending ? ` for ${age.days_pending} days` : ""}. Please clear it at the shop. Thank you.`)}`}>
           Send reminder on WhatsApp
         </a>
       )}

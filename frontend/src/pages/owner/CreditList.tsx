@@ -16,7 +16,9 @@ export function CreditList() {
     if (error) throw error;
     const { data: people } = await supabase.from("profiles").select("id,full_name,phone");
     const byId = new Map((people ?? []).map((p) => [p.id, p]));
-    return (balances as Row[]).map((b) => ({ ...b, person: byId.get(b.customer_id) })).sort((a, b) => b.pending_paise - a.pending_paise);
+    const { data: aging } = await supabase.rpc("credit_aging");
+    const days = new Map(((aging ?? []) as { account_id: string; days_pending: number | null }[]).map((a) => [a.account_id, a.days_pending]));
+    return (balances as Row[]).map((b) => ({ ...b, person: byId.get(b.customer_id), days: days.get(b.account_id) ?? null })).sort((a, b) => b.pending_paise - a.pending_paise);
   }, []);
   if (failed) return <LoadError onRetry={retry} />;
   if (!data) return <Skeleton className="h-64" />;
@@ -28,7 +30,7 @@ export function CreditList() {
         {data.map((row) => (
           <li key={row.account_id}>
             <Link to={`/owner/credit/${row.account_id}`} className="flex items-center justify-between gap-3 border-b border-line py-3">
-              <span><b>{row.person?.full_name}</b><br /><span className="text-sm">{row.last_entry_at ? formatDateTime(row.last_entry_at) : "No entries yet"}</span></span>
+              <span><b>{row.person?.full_name}</b><br /><span className="text-sm">{row.last_entry_at ? formatDateTime(row.last_entry_at) : "No entries yet"}{row.days != null && row.pending_paise > 0 ? ` · unpaid for ${row.days} days` : ""}</span></span>
               <b className={row.pending_paise > 0 ? "text-brick" : "text-leaf"}>{row.pending_paise > 0 ? formatRupees(row.pending_paise) : row.pending_paise < 0 ? "Advance" : "Cleared"}</b>
             </Link>
           </li>

@@ -11,7 +11,7 @@ export function Settings() {
   const [shop, setShop] = useState({ name: "", address: "", phone: "", whatsapp: "", timings: "", map_link: "" });
   const [banner, setBanner] = useState({ id: 0, text_or: "", text_en: "", is_active: false });
   const [services, setServices] = useState<Service[]>([]);
-  const [limits, setLimits] = useState({ large: "10000", staleDays: "7" });
+  const [limits, setLimits] = useState({ large: "10000", staleDays: "7", reminderDays: "30" });
   const [message, setMessage] = useState<{ kind: "error" | "success"; text: string } | null>(null);
   const [purging, setPurging] = useState(false);
 
@@ -24,7 +24,7 @@ export function Settings() {
 
   useEffect(() => {
     supabase.from("shop_settings").select("*").single().then(({ data }) => data && setShop({ name: data.name, address: data.address ?? "", phone: data.phone ?? "", whatsapp: data.whatsapp ?? "", timings: data.timings ?? "", map_link: data.map_link ?? "" }));
-    supabase.from("shop_settings").select("large_amount_paise,stale_price_days").single().then(({ data }) => data && setLimits({ large: String(data.large_amount_paise / 100), staleDays: String(data.stale_price_days) }));
+    supabase.from("shop_settings").select("large_amount_paise,stale_price_days,credit_reminder_days").single().then(({ data }) => data && setLimits({ large: String(data.large_amount_paise / 100), staleDays: String(data.stale_price_days), reminderDays: String(data.credit_reminder_days) }));
     supabase.from("banners").select("*").eq("show_on", "home").limit(1).maybeSingle().then(({ data }) => data && setBanner({ id: data.id, text_or: data.text_or ?? "", text_en: data.text_en ?? "", is_active: data.is_active }));
     supabase.from("services").select("*").order("sort_order").then(({ data }) => setServices((data ?? []).map((s) => ({ id: s.id, name_en: s.name_en, price: s.price_paise ? String(s.price_paise / 100) : "", unit_label: s.unit_label ?? "" }))));
     void loadPhotos();
@@ -40,7 +40,7 @@ export function Settings() {
       supabase.from("shop_settings").update({ ...shop, address: shop.address || null, phone: shop.phone || null, whatsapp: shop.whatsapp || null, timings: shop.timings || null, map_link: shop.map_link || null }).eq("id", 1),
       banner.id ? supabase.from("banners").update({ text_or: banner.text_or, text_en: banner.text_en, is_active: banner.is_active, updated_at: new Date().toISOString() }).eq("id", banner.id)
         : supabase.from("banners").insert({ text_or: banner.text_or, text_en: banner.text_en, is_active: banner.is_active, show_on: "home" }),
-      supabase.from("shop_settings").update({ large_amount_paise: Math.max(100, Math.round(parseFloat(limits.large || "0") * 100)), stale_price_days: Math.max(1, parseInt(limits.staleDays || "7", 10)) }).eq("id", 1),
+      supabase.from("shop_settings").update({ large_amount_paise: Math.max(100, Math.round(parseFloat(limits.large || "0") * 100)), stale_price_days: Math.max(1, parseInt(limits.staleDays || "7", 10)), credit_reminder_days: Math.min(365, Math.max(1, parseInt(limits.reminderDays || "30", 10))) }).eq("id", 1),
       ...services.map((s) => supabase.from("services").update({ price_paise: /^\d+(\.\d{1,2})?$/.test(s.price) && parseFloat(s.price) > 0 ? Math.round(parseFloat(s.price) * 100) : null, unit_label: s.unit_label }).eq("id", s.id)),
     ]);
     const failed = results.find((r) => r.error);
@@ -98,6 +98,7 @@ export function Settings() {
       <h2 className="pt-2 font-display text-2xl font-extrabold">Warnings</h2>
       <Field label="Ask for a second check on credit amounts of this many rupees or more" value={limits.large} inputMode="decimal" onChange={(e) => setLimits({ ...limits, large: e.target.value })} />
       <Field label="Show an item under Old prices after this many days" value={limits.staleDays} inputMode="numeric" onChange={(e) => setLimits({ ...limits, staleDays: e.target.value })} />
+      <Field label="Remind a customer when their unpaid credit is this many days old" value={limits.reminderDays} inputMode="numeric" onChange={(e) => setLimits({ ...limits, reminderDays: e.target.value })} />
       <h2 className="pt-2 font-display text-2xl font-extrabold">Home banner</h2>
       <div className="flex items-center justify-between"><span className="font-bold">Show banner</span><Switch on={banner.is_active} onChange={(v) => setBanner({ ...banner, is_active: v })} label="Show banner" /></div>
       <Field label="Banner text in Odia" value={banner.text_or} onChange={(e) => setBanner({ ...banner, text_or: e.target.value })} />

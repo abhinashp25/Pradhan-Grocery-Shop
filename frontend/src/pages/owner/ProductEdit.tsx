@@ -55,15 +55,21 @@ export function ProductEdit() {
       if (result.error) { setBusy(false); return setMessage({ kind: "error", text: result.error.message }); }
     }
     if (photo) {
+      let step = "reading the photo";
       try {
         const small = await compressPhoto(photo);
+        step = "uploading the photo";
         const path = `products/${productId}.webp`;
         const upload = await supabase.storage.from("product-photos").upload(path, small, { upsert: true, contentType: "image/webp" });
         if (upload.error) throw upload.error;
-        await supabase.from("products").update({ photo_path: `${path}?v=${Date.now()}` }).eq("id", productId);
-      } catch {
+        step = "saving the photo name";
+        const named = await supabase.from("products").update({ photo_path: `${path}?v=${Date.now()}` }).eq("id", productId);
+        if (named.error) throw named.error;
+      } catch (problem) {
         setBusy(false);
-        return setMessage({ kind: "error", text: "The product was saved, but the photo could not be uploaded. Please try the photo again." });
+        const detail = (problem as { message?: string }).message ?? "";
+        const hint = step === "reading the photo" ? " Please use a JPG or PNG photo." : step === "uploading the photo" ? " Run migration 008 in Supabase if this keeps happening." : "";
+        return setMessage({ kind: "error", text: `The product was saved, but the photo failed while ${step}. ${detail}${hint}` });
       }
     }
     setBusy(false);
