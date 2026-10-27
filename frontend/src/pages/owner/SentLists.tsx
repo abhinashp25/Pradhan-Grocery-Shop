@@ -14,7 +14,7 @@ export function SentLists() {
   const [status, setStatus] = useState<(typeof filters)[number]>("new");
   const [lists, setLists] = useState<SentList[] | null>(null);
   const [problem, setProblem] = useState("");
-  const [stillOnSale, setStillOnSale] = useState<Set<string>>(new Set());
+  const [finishedIds, setFinishedIds] = useState<Set<string>>(new Set());
   // Show older collected lists when the owner toggles this on.
   const [showAll, setShowAll] = useState(false);
   useTitle("Sent Lists");
@@ -48,8 +48,8 @@ export function SentLists() {
         .from("products")
         .select("id")
         .in("id", ids)
-        .eq("is_available", true);
-      setStillOnSale(new Set((available ?? []).map((p) => p.id)));
+        .eq("is_available", false);
+      setFinishedIds(new Set((available ?? []).map((p) => p.id)));
     }
   }, [status, showAll]);
 
@@ -115,7 +115,7 @@ export function SentLists() {
           </div>
           <ul>
             {list.sent_list_items.map((item) => {
-              const gone = item.product_id && stillOnSale.size > 0 && !stillOnSale.has(item.product_id);
+              const gone = !!item.product_id && finishedIds.has(item.product_id);
               return (
                 <li key={item.id} className={gone ? "font-bold text-brick" : ""}>
                   {gone ? "✕ " : ""}
