@@ -4,11 +4,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        page: "var(--page)",
-        card: "var(--card)",
-        ink: "var(--ink)",
-        muted: "var(--muted)",
-        line: "var(--line)",
+        page: "rgb(var(--page) / <alpha-value>)",
+        card: "rgb(var(--card) / <alpha-value>)",
+        ink: "rgb(var(--ink) / <alpha-value>)",
+        muted: "rgb(var(--muted) / <alpha-value>)",
+        line: "rgb(var(--line) / <alpha-value>)",
         saffron: { DEFAULT: "#F28C0F", light: "#FFB627", dark: "#B25F00" },
         forest: "#0E4A2B",
         leaf: "#1F7A3E",
