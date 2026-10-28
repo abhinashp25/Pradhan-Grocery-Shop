@@ -5,7 +5,7 @@ import type { Shop } from "../lib/types";
 export function Footer({ shop }: { shop: Shop | null }) {
   const t = useText();
   return (
-    <footer className="mx-auto max-w-3xl space-y-2 px-4 pb-32 text-sm">
+    <footer className="mx-auto max-w-6xl space-y-2 px-4 pb-32 pt-8 text-sm lg:px-8 lg:pb-12">
       <nav aria-label="Footer" className="flex flex-wrap gap-4 font-bold">
         <Link to="/shop-info">{t("shopInfo")}</Link>
         <Link to="/help">{t("help")}</Link>

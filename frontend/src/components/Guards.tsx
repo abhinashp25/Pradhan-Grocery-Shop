@@ -10,7 +10,8 @@ export function RequireCustomer({ children }: { children: ReactNode }) {
 }
 
 export function RequireOwner({ children }: { children: ReactNode }) {
-  const { profile, ready } = useAuth();
+  const { profile, ready, needsCode } = useAuth();
   if (!ready) return <Skeleton className="h-40" />;
-  return profile?.role === "admin" ? <>{children}</> : <Navigate to="/owner/login" replace />;
+  // The owner must have passed the two-step code too, or the database will refuse every request.
+  return profile?.role === "admin" && !needsCode ? <>{children}</> : <Navigate to="/owner/login" replace />;
 }

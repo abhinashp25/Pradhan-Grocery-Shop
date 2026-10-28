@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTilt } from "../lib/motion";
 import { Link } from "react-router-dom";
 import { addToList, useMyList } from "../lib/myList";
 import { formatRupees } from "../lib/money";
@@ -16,6 +17,7 @@ export function ProductCard({ product }: { product: Product }) {
   const lang = useLang();
   const inList = useMyList();
   const [justAdded, setJustAdded] = useState(false);
+  const tilt = useTilt<HTMLElement>(5);
   const size = mainSize(product);
   if (!size) return null;
 
@@ -37,7 +39,7 @@ export function ProductCard({ product }: { product: Product }) {
   }
 
   return (
-    <article className={`flex flex-col rounded-2xl bg-card p-3 shadow ${product.is_available ? "" : "opacity-70"}`}>
+    <article ref={tilt} className={`flex h-full flex-col rounded-3xl bg-card p-3 shadow-sm ring-1 ring-line/40 hover:shadow-lg ${product.is_available ? "" : "opacity-70"}`}>
       {product.photo_path ? (
         <img
           src={photoUrl(product.photo_path)}
@@ -45,10 +47,10 @@ export function ProductCard({ product }: { product: Product }) {
           width={300}
           height={200}
           loading="lazy"
-          className="h-32 w-full rounded-xl object-cover"
+          className="aspect-[3/2] w-full rounded-2xl object-cover"
         />
       ) : (
-        <div className="h-32 rounded-xl bg-line/40" aria-hidden="true" />
+        <div className="aspect-[3/2] rounded-2xl bg-line/40" aria-hidden="true" />
       )}
       <h3 className="mt-2 font-bold leading-tight"><Link to={`/p/${product.id}`}>{first}</Link></h3>
       <p className="text-sm text-muted">{second}</p>

@@ -28,7 +28,7 @@ export function BackToTop() {
   return (
     <button
       onClick={() => window.scrollTo({ top: 0 })}
-      className="no-print fixed bottom-24 left-4 z-20 min-h-12 rounded-full bg-forest px-4 font-bold text-[#FFF8EC] shadow-lg"
+      className="no-print fixed bottom-24 left-4 lg:bottom-6 lg:left-6 z-20 min-h-12 rounded-full bg-forest px-4 font-bold text-[#FFF8EC] shadow-lg"
     >
       {t("backToTop")}
     </button>
@@ -47,7 +47,7 @@ export function CookieNotice() {
     setHidden(true);
   }
   return (
-    <div role="region" aria-label="Notice" className="no-print fixed inset-x-0 bottom-[72px] z-30 flex items-center gap-3 bg-forest p-3 text-sm text-[#FFF8EC]">
+    <div role="region" aria-label="Notice" className="no-print fixed inset-x-0 bottom-[72px] lg:bottom-0 z-30 flex items-center gap-3 bg-forest p-3 text-sm text-[#FFF8EC]">
       <p className="flex-1">{t("cookieText")}</p>
       <button onClick={accept} className="min-h-11 rounded-xl bg-saffron px-4 font-bold text-[#3A2A1E]">OK</button>
     </div>
@@ -71,4 +71,22 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
       {done ? t("copied") : label}
     </button>
   );
+}
+
+// Shown across the top when the phone has no internet.
+export function OfflineBar() {
+  const t = useText();
+  const [online, setOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+  if (online) return null;
+  return <div role="status" className="no-print bg-[#FFF0B8] px-4 py-2 text-center text-sm font-bold text-[#3A2A1E]">{t("offlineNotice")}</div>;
 }
