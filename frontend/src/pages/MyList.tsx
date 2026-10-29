@@ -43,7 +43,16 @@ export function MyList() {
       p_items: items.map((item) => ({ size_id: item.sizeId, quantity: item.qty })),
     });
     setSending(false);
-    if (failure) setError(failure.message.includes("Too many") ? t("tooManyLists") : failure.message);
+    if (failure) {
+      // Map known database errors to localised messages. Never show raw SQL text to customers.
+      const msg = failure.message ?? "";
+      if (msg.includes("Too many") || msg.includes("too many")) setError(t("tooManyLists"));
+      else if (msg.includes("phone") || msg.includes("number")) setError(t("badPhone"));
+      else if (msg.includes("name")) setError(t("badName"));
+      else if (msg.includes("empty") || msg.includes("Empty")) setError(t("emptyList"));
+      else if (msg.includes("for sale")) setError(t("noneForSale"));
+      else setError(t("netProblem"));
+    }
     else setSent(true);
   }
 

@@ -61,7 +61,7 @@ export function SentLists() {
 
   async function move(id: string, next: "ready" | "collected") {
     const { error } = await supabase.rpc("set_list_status", { p_list: id, p_status: next });
-    if (error) setProblem(error.message);
+    if (error) setProblem("Could not update the list status. Please try again.");
     else void load();
   }
 

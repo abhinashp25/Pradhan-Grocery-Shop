@@ -44,7 +44,7 @@ export function Products() {
   useTitle("Products");
 
   async function setAvailable(id: string, next: boolean) {
-    await supabase.from("products").update({ is_available: next, updated_at: new Date().toISOString() }).eq("id", id);
+    await supabase.from("products").update({ is_available: next }).eq("id", id);
     setRound((n) => n + 1);
   }
 

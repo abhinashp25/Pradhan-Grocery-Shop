@@ -4,7 +4,8 @@ import { downloadCsv, parseCsv } from "../../lib/csv";
 import { supabase } from "../../lib/supabase";
 import { useTitle } from "../../lib/useTitle";
 
-const columns = ["category_slug", "subcategory_en", "name_en", "name_or", "name_hi", "size_label", "price_rupees", "is_available", "shelf_spot", "search_words", "is_popular", "price_is_approx"];
+// subcategory_or is optional — if blank the English name is used as a placeholder.
+const columns = ["category_slug", "subcategory_en", "subcategory_or", "name_en", "name_or", "name_hi", "size_label", "price_rupees", "is_available", "shelf_spot", "search_words", "is_popular", "price_is_approx"];
 type Line = Record<string, string>;
 const yes = (v: string) => v.trim().toLowerCase() === "yes";
 
@@ -56,7 +57,7 @@ export function Upload() {
             const found = await supabase.from("subcategories").select("id").eq("category_id", category).ilike("name_en", line.subcategory_en).maybeSingle();
             if (found.data) subCache.set(key, found.data.id);
             else {
-              const made = await supabase.from("subcategories").insert({ category_id: category, name_en: line.subcategory_en, name_or: line.subcategory_en }).select("id").single();
+              const made = await supabase.from("subcategories").insert({ category_id: category, name_en: line.subcategory_en, name_or: line.subcategory_or || line.subcategory_en }).select("id").single();
               if (made.error) throw made.error;
               subCache.set(key, made.data.id);
             }
@@ -92,7 +93,7 @@ export function Upload() {
     <div className="space-y-4">
       <h1 className="font-display text-3xl font-extrabold">Bulk upload</h1>
       <p className="text-sm">One row per size. Same name and size updates the price. A new name makes a new product. Nothing is saved until you press Confirm.</p>
-      <button className={`${plainButton} w-full`} onClick={() => downloadCsv("products-template.csv", [columns, ["grocery", "Rice", "Sona Masoori Rice", "", "", "1 kg", "62", "yes", "Left wall, rack 2", "chawal|rice", "yes", "no"]])}>Download the CSV template</button>
+      <button className={`${plainButton} w-full`} onClick={() => downloadCsv("products-template.csv", [columns, ["grocery", "Rice", "ଚାଉଳ", "Sona Masoori Rice", "ସୋନା ମସୁରୀ ଚାଉଳ", "", "1 kg", "62", "yes", "Left wall, rack 2", "chawal|rice", "yes", "no"]])}>Download the CSV template</button>
       <input type="file" accept=".csv,text/csv" aria-label="Choose CSV file" onChange={(e) => choose(e.target.files?.[0])} />
       {message && <Notice kind={message.kind}>{message.text}</Notice>}
       {errors.map((text) => <Notice key={text} kind="error">{text}</Notice>)}

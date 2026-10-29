@@ -43,16 +43,17 @@ export function ProductEdit() {
   async function save() {
     setBusy(true);
     setMessage(null);
+    // updated_at is set by a database trigger (migration 010) — do not send it from the client.
     const row = { name_en: form.name_en.trim(), name_or: form.name_or.trim(), name_hi: form.name_hi.trim() || null, category_id: Number(form.category_id), subcategory_id: form.subcategory_id ? Number(form.subcategory_id) : null,
-      shelf_spot: form.shelf_spot.trim() || null, search_words: form.search_words.trim(), is_available: form.is_available, is_popular: form.is_popular, is_hidden: form.is_hidden, price_is_approx: form.price_is_approx, updated_at: new Date().toISOString() };
+      shelf_spot: form.shelf_spot.trim() || null, search_words: form.search_words.trim(), is_available: form.is_available, is_popular: form.is_popular, is_hidden: form.is_hidden, price_is_approx: form.price_is_approx };
     const saved = id ? await supabase.from("products").update(row).eq("id", id).select("id").single() : await supabase.from("products").insert(row).select("id").single();
-    if (saved.error) { setBusy(false); return setMessage({ kind: "error", text: saved.error.message }); }
+    if (saved.error) { setBusy(false); return setMessage({ kind: "error", text: "Could not save the product. Please check the fields and try again." }); }
     const productId = saved.data.id as string;
 
     for (const [index, size] of sizes.entries()) {
       const values = { product_id: productId, label: size.label.trim(), price_paise: Math.round(parseFloat(size.price) * 100), sort_order: index, is_default: index === 0 };
       const result = size.id ? await supabase.from("product_sizes").update(values).eq("id", size.id) : await supabase.from("product_sizes").insert(values);
-      if (result.error) { setBusy(false); return setMessage({ kind: "error", text: result.error.message }); }
+      if (result.error) { setBusy(false); return setMessage({ kind: "error", text: "Could not save the price. Please try again." }); }
     }
     if (photo) {
       let step = "reading the photo";

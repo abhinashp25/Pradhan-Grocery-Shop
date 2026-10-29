@@ -26,7 +26,7 @@ export function Rates() {
     const changed = (data ?? []).filter((r) => /^\d+(\.\d{1,2})?$/.test(typed[r.sizeId] ?? "") && Math.round(parseFloat(typed[r.sizeId]) * 100) !== r.old);
     for (const row of changed) {
       const { error } = await supabase.from("product_sizes").update({ price_paise: Math.round(parseFloat(typed[row.sizeId]) * 100) }).eq("id", row.sizeId);
-      if (error) return setMessage({ kind: "error", text: `${row.name}: ${error.message}` });
+      if (error) return setMessage({ kind: "error", text: `Could not save rate for ${row.name}. Please try again.` });
     }
     setMessage({ kind: "success", text: `${changed.length} rates saved.` });
     setTyped({});
