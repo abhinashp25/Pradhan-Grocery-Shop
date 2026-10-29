@@ -100,11 +100,11 @@ select t_check((select count(*) from credit_entries) = 0, 'a hidden balance also
 reset role;
 select t_as('');
 set local role anon;
-select t_check((select count(*) from credit_entries) = 0, 'visitor cannot read credit lines');
-select t_check((select count(*) from credit_accounts) = 0, 'visitor cannot read credit accounts');
-select t_check((select count(*) from profiles) = 0, 'visitor cannot read people');
-select t_check((select count(*) from login_attempts) = 0, 'visitor cannot read login attempts');
-select t_check((select count(*) from audit_log) = 0, 'visitor cannot read the activity log');
+select t_check(t_fails($$select count(*) from credit_entries$$), 'visitor cannot read credit lines');
+select t_check(t_fails($$select count(*) from credit_accounts$$), 'visitor cannot read credit accounts');
+select t_check(t_fails($$select count(*) from profiles$$), 'visitor cannot read people');
+select t_check(t_fails($$select count(*) from login_attempts$$), 'visitor cannot read login attempts');
+select t_check(t_fails($$select count(*) from audit_log$$), 'visitor cannot read the activity log');
 select t_check((select count(*) from products) >= 1, 'visitor can read products');
 select t_check((select count(*) from products where is_hidden) = 0, 'hidden products stay hidden');
 select t_check(not is_admin(), 'visitor is not the owner');
@@ -144,7 +144,7 @@ select t_check(
 select t_check(t_fails($$select send_list('Visitor', '12345', jsonb_build_array(jsonb_build_object('size_id', '00000000-0000-0000-0000-0000000000e1', 'quantity', 1)))$$), 'a bad phone number is refused');
 select t_check(t_fails($$select send_list('Visitor', '9222222222', '[]'::jsonb)$$), 'an empty list is refused');
 -- Visitor RLS: count only the test phone lists since production may have others
-select t_check((select count(*) from sent_lists) = 0, 'visitor cannot read sent lists');
+select t_check(t_fails($$select count(*) from sent_lists$$), 'visitor cannot read sent lists');
 
 -- A logged-in customer sends a list and can read only their own.
 reset role;

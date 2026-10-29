@@ -4,6 +4,11 @@ do $$
 declare
   p uuid;
 begin
+  -- Running this twice would make every product twice, so the second run does nothing.
+  if exists (select 1 from products where name_en = 'Sona Masoori Rice') then
+    raise notice 'Sample products are already there. Nothing was added.';
+    return;
+  end if;
   insert into products (category_id, name_en, name_or, search_words, is_popular) values (1, 'Sona Masoori Rice', 'ସୋନା ମସୁରୀ ଚାଉଳ', 'chawal, rice', true) returning id into p;
   insert into product_sizes (product_id, label, price_paise, sort_order, is_default) values (p, '1 kg', 6200, 0, true), (p, '5 kg', 30000, 1, false);
   insert into products (category_id, name_en, name_or, search_words, is_popular) values (1, 'Toor Dal', 'ଅରହର ଡାଲି', 'dal, daal', true) returning id into p;
