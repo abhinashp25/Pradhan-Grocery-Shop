@@ -3,25 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --page: #fff8ec;
-  --card: #ffffff;
-  --ink: #3a2a1e;
-  --muted: #5e4b3b;
-  --line: #cdbfa6;
+  --page: 255 248 236;
+  --card: 255 255 255;
+  --ink: 58 42 30;
+  --muted: 94 75 59;
+  --line: 205 191 166;
 }
 
 /* Dark mode keeps text far above the contrast minimum. */
 :root[data-theme="dark"] {
-  --page: #17110b;
-  --card: #241a12;
-  --ink: #fff3e0;
-  --muted: #e3d2ba;
-  --line: #6b5640;
+  --page: 23 17 11;
+  --card: 36 26 18;
+  --ink: 255 243 224;
+  --muted: 227 210 186;
+  --line: 107 86 64;
 }
 
 body {
-  background: var(--page);
-  color: var(--ink);
+  background: rgb(var(--page));
+  color: rgb(var(--ink));
   font-family: "Noto Sans", "Noto Sans Oriya", sans-serif;
   font-size: 18px;
   line-height: 1.5;
@@ -41,3 +41,18 @@ body {
   .no-print { display: none !important; }
   body { background: #fff; color: #000; }
 }
+
+/* Loading shapes: a soft light sweeps across, so the app never looks frozen. */
+.skeleton {
+  background: linear-gradient(100deg, rgb(var(--line) / 0.25) 30%, rgb(var(--line) / 0.5) 50%, rgb(var(--line) / 0.25) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* A row that scrolls sideways on a phone, without a scroll bar. */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
