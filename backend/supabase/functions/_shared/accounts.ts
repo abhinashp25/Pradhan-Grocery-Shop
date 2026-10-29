@@ -41,19 +41,33 @@ export async function pinToPassword(pin: string, phone: string): Promise<string>
 // Returns the owner's id so the action can be written to the activity log.
 export async function requireOwner(req: Request): Promise<string> {
   const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-  if (!token) throw reply({ code: "not_allowed" }, 401);
+  if (!token) throw reply({ code: "not_allowed", reason: "no_token" }, 401);
 
   const db = adminClient();
   const { data } = await db.auth.getUser(token);
-  if (!data.user) throw reply({ code: "not_allowed" }, 401);
+  if (!data.user) throw reply({ code: "not_allowed", reason: "bad_token" }, 401);
 
-  const { data: profile } = await db
+  const { data: profile, error } = await db
     .from("profiles")
     .select("role,is_active")
     .eq("id", data.user.id)
     .maybeSingle();
+  if (error) {
+    // Almost always a missing permission. The message shows in the function logs.
+    console.error("requireOwner: could not read the profile:", error.message);
+    throw reply({ code: "not_allowed", reason: "profile_unreadable" }, 403);
+  }
   if (!profile || profile.role !== "admin" || !profile.is_active) {
-    throw reply({ code: "not_allowed" }, 403);
+    throw reply({ code: "not_allowed", reason: "not_owner" }, 403);
+  }
+
+  // If the owner has set up a two-step code, the session must have passed it (aal2).
+  // Read aal from the verified user's app_metadata (set by the auth server) rather
+  // than re-decoding the raw JWT, which would skip signature verification.
+  const hasCode = (data.user.factors ?? []).some((factor: { status?: string }) => factor.status === "verified");
+  const currentAal = (data.user.app_metadata?.aal as string | undefined) ?? "aal1";
+  if (hasCode && currentAal !== "aal2") {
+    throw reply({ code: "not_allowed", reason: "needs_code" }, 403);
   }
   return data.user.id;
 }

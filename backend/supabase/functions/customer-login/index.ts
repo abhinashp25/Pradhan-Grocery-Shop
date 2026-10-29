@@ -3,12 +3,12 @@
 //   supabase functions deploy customer-login --no-verify-jwt
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { adminClient, PHONE_PATTERN, PIN_PATTERN, phoneToEmail, pinToPassword } from "../_shared/accounts.ts";
-import { preflight, readJson, reply } from "../_shared/http.ts";
+import { preflight, readJson, reply, safely } from "../_shared/http.ts";
 
 const MAX_TRIES = 5;
 const LOCK_MINUTES = 15;
 
-Deno.serve(async (req) => {
+Deno.serve(safely(async (req) => {
   if (req.method === "OPTIONS") return preflight();
   if (req.method !== "POST") return reply({ code: "bad_request" }, 405);
 
@@ -63,4 +63,4 @@ Deno.serve(async (req) => {
 
   await db.from("login_attempts").delete().eq("phone", phone);
   return reply({ session: data.session });
-});
+}));

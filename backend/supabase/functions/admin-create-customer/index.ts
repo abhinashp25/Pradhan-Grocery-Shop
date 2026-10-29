@@ -1,8 +1,8 @@
 // The owner adds a customer in the shop and types the PIN.
 import { adminClient, logAction, PHONE_PATTERN, PIN_PATTERN, phoneToEmail, pinToPassword, requireOwner } from "../_shared/accounts.ts";
-import { preflight, readJson, reply } from "../_shared/http.ts";
+import { preflight, readJson, reply, safely } from "../_shared/http.ts";
 
-Deno.serve(async (req) => {
+Deno.serve(safely(async (req) => {
   if (req.method === "OPTIONS") return preflight();
   if (req.method !== "POST") return reply({ code: "bad_request" }, 405);
 
@@ -50,4 +50,4 @@ Deno.serve(async (req) => {
 
   await logAction(ownerId, "create_customer", "profiles", customerId);
   return reply({ customerId });
-});
+}));
