@@ -1,8 +1,8 @@
 // The owner sets a new PIN when a customer calls. The old PIN is never shown.
 import { adminClient, logAction, PIN_PATTERN, pinToPassword, requireOwner } from "../_shared/accounts.ts";
-import { preflight, readJson, reply } from "../_shared/http.ts";
+import { preflight, readJson, reply, safely } from "../_shared/http.ts";
 
-Deno.serve(async (req) => {
+Deno.serve(safely(async (req) => {
   if (req.method === "OPTIONS") return preflight();
   if (req.method !== "POST") return reply({ code: "bad_request" }, 405);
 
@@ -35,4 +35,4 @@ Deno.serve(async (req) => {
   await db.from("login_attempts").delete().eq("phone", customer.phone);
   await logAction(ownerId, "reset_pin", "profiles", customerId);
   return reply({ ok: true });
-});
+}));

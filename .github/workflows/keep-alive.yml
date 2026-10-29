@@ -1,5 +1,6 @@
 # A free database can pause when nobody uses it for about a week.
 # This job reads one row every 3 days so that it stays awake.
+# It needs two secrets in GitHub: SUPABASE_URL and SUPABASE_ANON_KEY (see the README).
 name: Keep database awake
 on:
   schedule:
@@ -7,8 +8,29 @@ on:
   workflow_dispatch:
 jobs:
   ping:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - run: |
-          curl --fail --silent "${{ secrets.SUPABASE_URL }}/rest/v1/categories?select=id&limit=1" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}"
+      - name: Read one row so the database does not pause
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          # Remove stray spaces, new lines and a slash at the end of the address.
+          url="$(printf '%s' "$SUPABASE_URL" | tr -d '[:space:]' | sed 's#/*$##')"
+          key="$(printf '%s' "$SUPABASE_ANON_KEY" | tr -d '[:space:]')"
+
+          if [ -z "$url" ] || [ -z "$key" ]; then
+            echo "::error::A secret is empty or missing. Add SUPABASE_URL and SUPABASE_ANON_KEY in GitHub: Settings, Secrets and variables, Actions, Repository secrets."
+            exit 1
+          fi
+          case "$url" in
+            https://*) ;;
+            *) echo "::error::SUPABASE_URL must start with https:// (example: https://abcd.supabase.co)"; exit 1 ;;
+          esac
+
+          status=$(curl -sS -o /dev/null -w "%{http_code}" "$url/rest/v1/categories?select=id&limit=1" -H "apikey: $key") || status=000
+          echo "Supabase answered: $status"
+          if [ "$status" != "200" ]; then
+            echo "::error::Expected 200 but got $status. Check that SUPABASE_URL is the Project URL only, and the key is the anon public key."
+            exit 1
+          fi

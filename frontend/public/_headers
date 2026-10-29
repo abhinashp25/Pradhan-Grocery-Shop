@@ -1,0 +1,29 @@
+/*
+  Security headers for Cloudflare Pages (or Netlify — both support this file).
+  Applied to every response from the CDN.
+  See: https://developers.cloudflare.com/pages/configuration/headers/
+*/
+
+/*
+  Apply to every page.
+*/
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Strict-Transport-Security: only sent after the first HTTPS load.
+# max-age=63072000 is 2 years — recommended minimum.
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+
+# Content-Security-Policy.
+# The app loads:
+#   - its own scripts and styles (self)
+#   - fonts from fontsource (inlined via Vite, so no external font domain needed)
+#   - images from Supabase storage (*.supabase.co)
+#   - the service worker (self)
+# Inline styles are used by Tailwind's JIT output and the boot skeleton in index.html,
+# so 'unsafe-inline' is needed for styles only.
+# Scripts are fully bundled — no inline scripts, no eval.
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://*.supabase.co; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
