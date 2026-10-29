@@ -87,7 +87,11 @@ Business rules:
 
 Code rules:
 7. Do not put the `service_role` key, `PIN_PEPPER`, or any secret in `frontend/` or in Git. `.env` is never committed.
-8. Do not edit `001_core.sql` or `002_storage.sql` after they have been run. Every database change is a NEW numbered file (`003_...sql`, `004_...sql`), and `backend/tests/credit_rules.sql` is updated to cover it.
+8. Do not edit any migration that has already been run (001 to 009). Every database change is a NEW numbered file (`010_...sql` next). It must also give the table its permissions (GRANT) in the same file, because on this Supabase project a new table starts with NO permissions for the app, and the owner screens fail with "permission denied". Add a check for it in `backend/tests/owner_access.sql` (and `credit_rules.sql` if it touches credit or lists).
+8b. Access has two layers: GRANTs (can this role touch the table at all) and RLS policies (which rows). Both must be right. `006_grants.sql` is the list of who may read or write what.
+8c. The server functions use the secret service key (role `service_role`). It needs permission on every table too (`008` gives it, including for future tables). Internal helper functions (`credit_pending`, `credit_oldest_unpaid`, `write_audit`) must stay locked: the app roles may not call them. Do not turn them into views the app reads, because a view calls functions with the app's rights.
+8d. Credit age is the date of the oldest credit that is not fully paid (payments count against the oldest credit first). It is worked out by `credit_oldest_unpaid` and shown through `credit_aging()` (owner) and `get_my_credit_age()` (customer). Never store it by hand.
+8e. The owner's's two-step code is enforced by the database (`is_admin()` in `007_hardening.sql`), not only by the login screen. Never weaken it.
 9. Do not rename tables, columns, routes or translation keys without being asked.
 10. Do not add packages without asking. Never run `npm audit fix --force`. Do not change versions in `package.json`.
 11. All customer screen text lives in `frontend/src/locales/*.json`. No text typed inside components. English is the fallback for missing Odia or Hindi keys. Owner screens are English only.
@@ -98,7 +102,11 @@ Look and style rules (these are deliberate, do not "improve" them):
 - Saffron buttons use brown text, never white.
 - Fonts: Baloo Bhaina 2 (headings), Noto Sans and Noto Sans Oriya (body). No Inter, no Space Grotesk, no serif italics.
 - Icons: our own small SVGs in `components/icons.tsx`. No Lucide, no icon libraries, no shadcn.
-- No purple-blue gradients, gradient headline text, glassmorphism, grain, cursor effects, fade-in on scroll, fade-on-hover buttons, badges above headlines, three-icon-box rows, coloured left-border cards, emojis in headings.
+- No purple-blue gradients, gradient headline text, glassmorphism, grain, cursor-following lines, fade-on-hover buttons, badges above headlines, three-icon-box rows, coloured left-border cards, emojis in headings.
+- Motion uses GSAP only, and only through `frontend/src/lib/motion.ts` (tilt, scroll reveal) and the hero in `components/Hero.tsx`. Rules: every effect is skipped when the phone asks for reduced motion; tilt only on screens with a mouse; items that animate in are already on the page when it first draws (never content that loads later); animate only transform and opacity; keep each animation under about 1 second; no motion on forms, the credit book or owner screens.
+- Loading: every screen shows a page-shaped skeleton (`components/Skeletons.tsx`) with a moving light, never a blank page or a spinner on top of content. `index.html` also shows a skeleton before the app has downloaded. Every page except Home has a Back button (`components/BackButton.tsx`) and owner pages go back to `/owner`. The owner always has an "Owner dashboard" link in the shop header.
+- Colours made from the light and dark variables are stored as three numbers (`--page: 255 248 236`) so opacity classes like `bg-line/40` work. Keep that form.
+- Layout is responsive: phone first (bottom bar), laptop from the `lg` size (header links, wider grids, owner side menu). Check both widths after every change to a screen.
 - No em dashes in any app text. Use a full stop, a comma or a colon.
 - Plain shop words only. No buzzwords.
 - Spacing only from Tailwind steps 1, 2, 3, 4, 6, 8, 12. Buttons at least 56 px tall (48 px inside product cards). Body text at least 18 px.
@@ -106,19 +114,20 @@ Look and style rules (these are deliberate, do not "improve" them):
 
 ## 6. What is built and what is not
 
-Built and checked (type-check, build, and 62 database checks pass): everything in section 4.
+Built and checked (type-check, build, and the database tests `credit_rules.sql` and `owner_access.sql` pass with no default permissions): everything in section 4, plus the items the owner added with Antigravity: Odia and Hindi text (a first draft), customer login status on the Customers list, hiding and purging old sent lists, shop photos, quick edits on owner screens.
 
-NOT built yet, in priority order:
-1. `frontend/src/locales/or.json` and `hi.json` are almost empty. Most screens show English.
-2. Quick price edit on each row of `pages/owner/Products.tsx`.
-3. Owner Customers list: last login and locked or not (needs a new migration, an owner-only view).
-4. Old sent lists: hide after 7 days, delete after 30 (needs a new migration with a purge function).
-5. Shop photos on `pages/ShopInfo.tsx` (owner upload in Settings; bucket `banners` already exists).
-6. Odia help audio files in `frontend/public/audio/` (see its README). The Listen button already exists.
-7. Owner-only "Suggest Odia" helper (new Edge Function `suggest-odia`, needs a paid translation key). Optional.
-8. Version 2 only: helper accounts, per-size availability, barcode scan, monthly credit PDF.
+Added in the audit: explicit permissions (006), the two-step code enforced in the database (007), server-key permissions and photo rules (008), credit age and the reminder days (009), a laptop layout, a new Home with a GSAP hero, category heroes, page-shaped skeleton loading, Back buttons, offline bar, page changes, and card tilt.
 
-Not verified: nothing has been tested on a real Android phone or against a live Supabase project except by the user. Odia voice search is unverified.
+NOT done yet, in priority order:
+1. A native Odia reader must check `or.json` and `hi.json`. They are AI drafts.
+2. The new look is built on Home, the shell (header, footer, owner side menu) and product cards only. Other screens keep their phone design and only get the wider laptop layout.
+3. Odia help audio files in `frontend/public/audio/` (see its README). The Listen button already exists.
+4. Optional "Suggest Odia" helper (new Edge Function `suggest-odia`, needs a paid translation key).
+5. Automated tests for the frontend. Nothing has been tested on a real phone by the assistant.
+6. GSAP adds about 70 KB (compressed) to the first download. If slow phones struggle, load GSAP only on Home.
+7. Version 2 only: helper accounts, per-size availability, barcode scan, monthly credit PDF.
+
+Not verified: real Android phones, real Supabase behaviour of the two-step code in `supabase-js` (check the owner login with and without a code set up), Odia voice search.
 
 ## 7. How to work
 
