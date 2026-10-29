@@ -38,13 +38,13 @@ export function Settings() {
   async function save() {
     const results = await Promise.all([
       supabase.from("shop_settings").update({ ...shop, address: shop.address || null, phone: shop.phone || null, whatsapp: shop.whatsapp || null, timings: shop.timings || null, map_link: shop.map_link || null }).eq("id", 1),
-      banner.id ? supabase.from("banners").update({ text_or: banner.text_or, text_en: banner.text_en, is_active: banner.is_active, updated_at: new Date().toISOString() }).eq("id", banner.id)
+      banner.id ? supabase.from("banners").update({ text_or: banner.text_or, text_en: banner.text_en, is_active: banner.is_active }).eq("id", banner.id)
         : supabase.from("banners").insert({ text_or: banner.text_or, text_en: banner.text_en, is_active: banner.is_active, show_on: "home" }),
       supabase.from("shop_settings").update({ large_amount_paise: Math.max(100, Math.round(parseFloat(limits.large || "0") * 100)), stale_price_days: Math.max(1, parseInt(limits.staleDays || "7", 10)), credit_reminder_days: Math.min(365, Math.max(1, parseInt(limits.reminderDays || "30", 10))) }).eq("id", 1),
       ...services.map((s) => supabase.from("services").update({ price_paise: /^\d+(\.\d{1,2})?$/.test(s.price) && parseFloat(s.price) > 0 ? Math.round(parseFloat(s.price) * 100) : null, unit_label: s.unit_label }).eq("id", s.id)),
     ]);
     const failed = results.find((r) => r.error);
-    setMessage(failed?.error ? { kind: "error", text: failed.error.message } : { kind: "success", text: "Saved." });
+    setMessage(failed?.error ? { kind: "error", text: "Could not save settings. Please check the values and try again." } : { kind: "success", text: "Saved." });
   }
 
   async function purge() {
