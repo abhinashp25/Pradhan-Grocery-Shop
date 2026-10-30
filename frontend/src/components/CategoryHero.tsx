@@ -10,7 +10,7 @@ type Props = { slug: string; name: string; tint: string; count: number | null; b
 // Odia and Hindi letters have marks high above and low below the line, so they get a smaller
 // size and a taller line than English. This keeps the tops of the letters from being cut off.
 const titleStyle = {
-  en: "text-5xl leading-[1.1] lg:text-7xl",
+  en: "text-5xl leading-[1.1] tracking-tight lg:text-7xl lg:tracking-[-0.02em]",
   hi: "text-4xl leading-[1.3] lg:text-6xl",
   or: "text-4xl leading-[1.45] lg:text-6xl",
 } as const;
